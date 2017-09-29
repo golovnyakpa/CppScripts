@@ -1,0 +1,504 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+using namespace std;
+
+template <typename T>
+struct node
+{
+  T field;
+  struct node *ptr;
+};
+
+template <typename T>
+    class Sequence
+{
+public:
+    virtual int getLength() {} ;
+    virtual int getIsEmpty() {};
+    virtual void setN(int a) {};
+    virtual void init() {}
+    virtual void print() {}
+    virtual T Get(int index) {}
+    virtual T GetFirst() {}
+    virtual T GetLast() {}
+    virtual void Append(T elem) {}
+    virtual void Prepend (T elem) {}
+    virtual void InsertAt(int index, T elem) {}
+    virtual void Remove (T elem) {}
+    virtual Sequence <T> *GetSubsequence(int startIndex, int endIndex) {}
+
+};
+ template <typename T> class ArraySequence : public  Sequence<T>
+{
+public:
+    int N;
+    T *arr;
+/*ArraySequence ()
+{
+    arr=new T [N];
+}*/
+void setarr(T *A)
+{
+    arr=A;
+}
+
+void setN(int n)
+{
+    N=n;
+}
+
+void init()
+{
+    for (int i=0; i<N; i++)
+    {
+        T elem;
+        cin >> elem;
+        *(arr+i)=elem;
+    }
+}
+
+void print()
+{
+    cout << "Текущий массив" << endl;
+    for (int i=0; i<N; i++)
+    {
+        cout << *(arr+i) << endl;
+    }
+}
+
+int getLength()
+{
+    return N ;
+}
+
+int getIsEmpty()
+{
+    if (N==0) {return 1;} else {return 0;}
+}
+
+T Get (int index)
+{
+    return *(arr+index);
+}
+
+T GetFirst ()
+{
+    return *(arr);
+}
+T GetLast ()
+{
+    return *(arr+ N - 1);
+}
+
+void Append (T elem)
+{
+    arr=(T*)realloc(arr,sizeof(T)*(N+1));
+    *(arr+N) = elem;
+    N++;
+}
+
+void Prepend (T elem)
+{
+    int i;
+    arr=(T*)realloc(arr,sizeof(T)*(N+1));
+    T elem1;
+         for(i=N+1;i>0;--i)
+        *(arr+i)=*(arr+i-1);
+    *(arr)=elem;
+    N++;
+}
+
+
+void InsertAt (int index, T elem)
+{
+     int i;
+     if (index==0) Prepend(elem);
+     if (index==N) Append (elem);
+     if ((index!=0) && (index!=N))
+     {
+        arr=(T*)realloc(arr,sizeof(T)*(N+1));
+        for(i=N+1;i>index;--i)
+          *(arr+i)=*(arr+i-1);
+          *(arr+index)=elem;
+       N++;
+     }
+}
+
+void Remove (T elem)
+{
+    int i, j;
+    for (i=0; i<N; i++)
+    {
+        if ( *(arr+i) == elem)
+        {
+            for (j=i; j<N; j++)
+            *(arr+j)=*(arr+j+1);
+            arr=(T*)realloc(arr,sizeof(T)*(N-1));
+            N--;
+            i--;
+        }
+    }
+}
+
+ArraySequence<T> *GetSubsequence(int i, int j){
+    int k;
+   // ArraySequence<T> b;
+    ArraySequence <T> B;///создаем и инициалиализируем последовательность, в которую будем заносить подпоследовательность
+    B.setN(j-i+1);
+    T *b;
+    b=new T [j-i+1];
+    B.setarr(b);
+    for(k=i;k<=j;k++)
+        B.Append(*(arr+k));
+    return &B;
+}
+
+};
+
+ template <typename T> class ListSequence : public  Sequence<T>
+ {
+ public:
+     int N;
+     node <T> *fst = new node <T>;
+     ListSequence()
+     {
+         fst->ptr= NULL;
+     }
+
+void setN(int n)
+{
+    N=n;
+}
+
+void  init()
+{
+    int i;
+    T elem;
+    node <T> *temp=fst;
+    for (i=0; i<N; i++)
+        {
+            cin >> elem;
+            node <T> *temp1, *p;
+            p= new node <T>;
+            temp->field = elem; // записываем данные в текущий узел
+            p->ptr= NULL; // новому элементу присваиваем значение указателя предыдущего
+            temp->ptr=p; // текущий указывает на только что созданный
+            temp = p; // текущим становится только что созданный
+        }
+}
+
+void print()
+{
+    cout << "Текущий список" << endl;
+    node <T> *temp=fst;
+    while (temp->ptr!=NULL)
+    {
+        cout << temp->field << endl;
+        temp=temp->ptr;
+    }
+}
+
+int getLength()
+{
+    return N ;
+}
+
+int getIsEmpty()
+{
+    if (N==0) {return 1;} else {return 0;}
+}
+
+T Get (int index)
+{
+    node <T> *temp=fst;
+    int i;
+    for (i=0; i<index; i++)
+        temp=temp->ptr;
+    return (temp->field);
+}
+
+T GetFirst ()
+{
+    return fst->field;
+}
+
+T GetLast ()
+{
+    node <T> *temp=fst;
+    int i;
+    for (i=0; i<N-1; i++)
+        temp=temp->ptr;
+    return (temp->field);
+}
+
+void Prepend(T elem)
+{
+    int i;
+    node <T> *temp=new node <T>;
+    temp->ptr=fst;
+    temp->field=elem;
+    fst=temp;
+    N++;
+}
+
+void Append(T elem){
+        struct node<T> *temp=fst;
+        struct node<T> *temp1;
+        if(N==0)Prepend(elem); else{
+        while (temp->ptr!=NULL)
+        temp=temp->ptr;
+        temp1=(struct node<T> *)malloc(sizeof(struct node<T>));
+        temp->ptr=temp1;
+        temp1->field=elem;
+        temp1->ptr=NULL;
+        N++;
+        }
+};
+
+
+void InsertAt(int index, T elem)
+{
+    node <T> *temp=fst;
+    node <T> *temp1; //
+    node <T> *temp2= new node <T>;
+    int i;
+    if (index == 0) Prepend(elem);
+    if (index==N) Append(elem);
+    if (index!=0 && index!=N)
+    {
+        for (i=0;i<index-1;i++)
+        {
+            temp=temp->ptr;
+        }
+        temp1 = temp->ptr;
+        temp->ptr = temp2;
+        temp2->field = elem;
+        temp2->ptr= temp1;
+    N++;
+    }
+}
+
+void Remove(T elem)
+{
+    node <T> *temp=fst;
+    node <T> *temp1;
+    while (temp->ptr!=NULL){
+    if(temp->ptr->field==elem){
+        temp1=temp->ptr;
+        temp->ptr=temp->ptr->ptr;
+        delete temp1;
+        N--;
+    }
+    temp=temp->ptr;
+    }
+}
+
+
+ };
+void menu()
+{
+    cout << "Введите 1 для того, чтобы узнать сколько элементов в последоватеьности" << endl;
+    cout << "2- узнать, пуста ли последовательность" << endl;
+    cout << "3- показать элемент с желаемым индексом" << endl;
+    cout << "4- показать первый элемент последовательности " << endl;
+    cout << "5 -показать последний элемент последовательности " << endl;
+    cout << "6- добавить элемент в конец последовательности" << endl;
+    cout << "7- добавить элемент в начало последовательности" << endl;
+    cout << "8- добавить элемент в нужную позицию" << endl;
+    cout << "9- удалить элемент из последовательности" << endl;
+    cout << "10- извлечь подпоследовательность" << endl;
+    cout << "11 - показать последовательность" << endl;
+}
+
+template<typename T>
+Test(Sequence <T> *a)
+{
+    a->setN(0);
+    if ((a->getLength() )==0) cout << "Test1:  OK"<<endl;
+    else cout << "GetLengt:Error";
+    a->Append(23);
+    if (a->getLength()==1) cout << "Test2:  OK" <<endl ; else cout << "Test2:Error"<<endl;
+    if (a->GetFirst()==23) cout << "Test3:  OK"<<endl ; else cout << "Test3:Error"<<endl;
+    if (a->GetLast()==23) cout << "Test4:  OK" <<endl; else cout << "Test4:Error"<<endl;
+    if (a->Get(0)==23) cout << "Test5:  OK" <<endl; else cout << "Test5:Error"<<endl;
+    //cout << (a->Get(-1)) <<endl; cout << (a->Get(-1)) <<endl;
+    a->Append(43);
+    if (a->getLength()==2) cout << "Test6:  OK" <<endl ; else cout << "Test6:Error"<<endl;
+    if (a->GetFirst()==23) cout << "Test7:  OK"<<endl ; else cout << "Test7:Error"<<endl;
+    if (a->GetLast()==43) cout << "Test8:  OK" <<endl; else cout << "Test8:Error"<<endl;
+    if (a->Get(0)==23) cout << "Test9:  OK" <<endl; else cout << "Test9:Error"<<endl;
+    if (a->Get(1)==43) cout << "Test10: OK" <<endl; else cout << "Test10:Error"<<endl;
+    a->Prepend(53);
+    if (a->getLength()==3) cout << "Test11: OK" <<endl ; else cout << "Test11:Error"<<endl;
+    if (a->GetFirst()==53) cout << "Test12: OK"<<endl ; else cout << "Test12:Error"<<endl;
+    if (a->Get(0)==53) cout << "Test13: OK" <<endl; else cout << "Test13:Error"<<endl;
+    if (a->Get(1)==23) cout << "Test14: OK" <<endl; else cout << "Test14:Error"<<endl;
+}
+
+
+int main()
+{
+    setlocale(0,"Russian");
+    int c, index,n, k;
+    cout << "Введите 1 для работы с массивом, 2 для работы со списком, 3 для тестирования программы" << endl;
+    cin >> c;
+    ArraySequence <int> A;
+    ListSequence <int> B;
+    if (c==1)
+    {
+        cout << "Введите количество элементов масисива, а затем введите элементы" << endl;
+       //  ArraySequence <int> A;
+         int n;
+         cin >> n;
+         A.setN(n);
+         int *a;
+         a=new int [n];
+         A.setarr(a);
+         A.init();
+        do
+        {
+         menu();
+         cin >> c;
+         if (c==1) {cout << A.getLength() <<" - количество элементов в массиве" << endl;}
+         if (c==2) {cout << A.getIsEmpty() << endl;}
+         if (c==3) {
+             int index;
+             cout << "Введите индекс" << endl;
+             cin >> index;
+             if ((index> n) or (index < 0))
+                cout <<"Ошибка! Слишком большой индекс" << endl;
+             else
+             {
+                cout << "Элемент с индексом "<< index << "=" <<A.Get(index)  << endl;
+             }
+         }
+         if (c==4) {cout << A.GetFirst() << " - первый элемент последовательности" << endl;}
+         if (c==5) {cout << A.GetLast() << " - последний элемент последовательности" << endl;}
+         if (c==6) {
+            int elem;
+            cout << "Введите элемент" << endl;
+            cin >> elem;
+            A.Append(elem);
+        }
+         if (c==7) {
+            int elem;
+            cout << "Введите элемент" << endl;
+            cin >> elem;
+            A.Prepend(elem);
+         }
+         if (c==8)
+         {
+             int index;
+             cout << "Введите индекс";
+             cin >> index;
+             if (index>n)
+                 cout <<"Ошибка! Слишком большой индекс";
+             else {
+                int elem;
+                int i;
+                cout << "Введите элемент" << endl;
+                cin >> elem;
+                A.InsertAt(index, elem);
+             }
+         }
+         if (c==9) {
+            int elem;
+            cout << "Введите элемент" << endl;
+            cin >> elem;
+            A.Remove(elem);
+         }
+         if (c==10)
+         {
+            int i, j;
+            cout << "Введите начальный и конечный индексы" << endl;
+            cin >> i >> j;
+            ArraySequence <int> *B;
+           // B->setN(j-i+1);
+            int *b;
+            b=new int [j-i+1];
+           // B->setarr(b);
+            B=A.GetSubsequence(i, j);//->print();
+            B->print();
+         }
+         if (c==11) {A.print();}
+        } while(c!=0);
+    }
+     else if (c==2)
+    {
+        cout << "Введите количество элементов списка, а затем введите элементы" << endl;
+        ListSequence <int> A;
+        int n;
+        cin >> n;
+        A.setN(n);
+        A.init();
+        do
+        {
+         menu();
+         cin >> c;
+         if (c==1) {cout << A.getLength() <<" - количество элементов в списке" << endl;}
+         if (c==2) {cout << A.getIsEmpty() << endl;}
+         if (c==3) {
+             int index;
+             cout << "Введите индекс" << endl;
+             cin >> index;
+             cout << "Элемент с индексом "<< index << "=" <<A.Get(index)  << endl;
+             }
+         if (c==4) {cout << A.GetFirst() << " - первый элемент последовательности" << endl;}
+         if (c==5) {cout << A.GetLast() << " - последний элемент последовательности" << endl;}
+         if (c==6) {
+            int elem;
+            cout << "Введите элемент "<< endl;
+            cin >> elem;
+            A.Append(elem);
+         }
+         if (c==7) {
+            int elem;
+            cout << "Введите элемент "<< endl;
+            cin >> elem;
+            A.Prepend(elem);
+         }
+         if (c==8)
+         {
+             int index;
+             int elem;
+             cout << "На какую позицию будем засовывать элемент?" << endl;
+             cin >> index;
+             cout << "Введите элемент";
+             cin >> elem;
+             A.InsertAt(index, elem);
+         }
+         if (c==9) {
+             int elem;
+             cout << "Какие элементы будем удалять?" << endl;
+             cin >> elem;
+             A.Remove(elem);
+         }
+         if (c==10)
+         {
+            int i, j;
+            cout << "Введите начальный и конечный индексы" << endl;
+            cin >> i >> j;
+            A.GetSubsequence(i, j);
+         }
+         if (c==11) {A.print();}
+         }while(c!=0);
+   }
+   else if (c==3)
+   {
+      ArraySequence <int> A;
+      int *a;
+      a=new int [0];
+      A.setarr(a);
+      ListSequence <int> B;
+      A.setN(0);
+   //   ListSequence <int> B;
+      cout <<"Для массива"<< endl;
+      Test(&A);
+      cout << endl;
+      cout << "Для списка" << endl;
+      Test(&B);
+   }
+   return 0;
+}
+
