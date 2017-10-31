@@ -1,13 +1,15 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include <ctime>
 using namespace std;
 
 template <typename T>
 struct node
 {
   T field;
-  struct node *ptr;
+  struct node *next;
+  struct node *prev;
 };
 
 template <typename T>
@@ -29,15 +31,12 @@ public:
     virtual Sequence <T> *GetSubsequence(int startIndex, int endIndex) {}
 
 };
+
  template <typename T> class ArraySequence : public  Sequence<T>
 {
 public:
     int N;
     T *arr;
-/*ArraySequence ()
-{
-    arr=new T [N];
-}*/
 void setarr(T *A)
 {
     arr=A;
@@ -63,7 +62,7 @@ void print()
     cout << "Текущий массив" << endl;
     for (int i=0; i<N; i++)
     {
-        cout << *(arr+i) << endl;
+        cout << arr[i] << endl;//cout << *(arr+i) << endl;
     }
 }
 
@@ -77,8 +76,20 @@ int getIsEmpty()
     if (N==0) {return 1;} else {return 0;}
 }
 
+/*void RandInit()
+{
+    N=10;
+    arr=(T*)realloc(arr,sizeof(T)*(N+1));
+    for (int i=0; i<10; i++)
+    {
+        arr[i]=rand()%1000;
+    }
+}*/
+
 T Get (int index)
 {
+    if (index >= N || index < 0) return 404;
+    else
     return *(arr+index);
 }
 
@@ -123,6 +134,7 @@ void InsertAt (int index, T elem)
           *(arr+index)=elem;
        N++;
      }
+
 }
 
 void Remove (T elem)
@@ -143,15 +155,93 @@ void Remove (T elem)
 
 ArraySequence<T> *GetSubsequence(int i, int j){
     int k;
-   // ArraySequence<T> b;
     ArraySequence <T> B;///создаем и инициалиализируем последовательность, в которую будем заносить подпоследовательность
-    B.setN(j-i+1);
+    B.setN((j-i)/2);
     T *b;
-    b=new T [j-i+1];
+    b=new T [(j-i)/2];
     B.setarr(b);
     for(k=i;k<=j;k++)
         B.Append(*(arr+k));
     return &B;
+}
+
+void *copymas(T *b){
+    for (int i=0; i<N; i++)
+    {
+        b[i]=arr[i];
+    }
+    return(b);
+}
+void bubbleSort(T *b, int n)
+{
+    T temp = 0;
+    bool exit = false;
+    while (!exit)
+    {
+    exit = true;
+    for (int i = 0; i < (N - 1); i++)
+        if (b[i] > b[i + 1])
+        {
+        temp = b[i];
+        b[i] = b[i + 1];
+        b[i + 1] = temp;
+        exit = false;
+        }
+    }
+}
+
+void QuickSort(){
+  quickSort(arr,0,N-1);
+}
+void quickSort(T *arr, int left, int right) {
+      int i = left, j = right;
+      int tmp;
+      int pivot = arr[(left + right) / 2];
+
+      /* partition */
+      while (i <= j) {
+            while (arr[i] < pivot)
+                  i++;
+            while (arr[j] > pivot)
+                  j--;
+            if (i <= j) {
+                  tmp = arr[i];
+                  arr[i] = arr[j];
+                  arr[j] = tmp;
+                  i++;
+                  j--;
+            }
+      };
+
+      /* recursion */
+      if (left < j)
+            quickSort(arr, left, j);
+      if (i < right)
+            quickSort(arr, i, right);
+}
+
+void shellSort(int n, int mass[])
+{
+    int i, j, step;
+    int tmp;
+    for (step = n / 2; step > 0; step /= 2)
+        for (i = step; i < n; i++)
+        {
+            tmp = mass[i];
+            for (j = i; j >= step; j -= step)
+            {
+                if (tmp < mass[j - step])
+                    mass[j] = mass[j - step];
+                else
+                    break;
+            }
+            mass[j] = tmp;
+        }
+}
+
+void ShellSort()
+{
+    shellSort(N, arr);
 }
 
 };
@@ -160,10 +250,18 @@ ArraySequence<T> *GetSubsequence(int i, int j){
  {
  public:
      int N;
-     node <T> *fst = new node <T>;
+    // node <T> *fst = new node <T>;
+    node <T> *fst;
+    node <T> *lst;
      ListSequence()
      {
-         fst->ptr= NULL;
+         fst=new node <T>;
+        // fst->ptr= NULL;
+         fst->next= NULL;
+         fst->prev= NULL;
+         lst=new node <T>;
+         lst->next= NULL;
+         lst->prev= NULL;
      }
 
 void setN(int n)
@@ -180,22 +278,31 @@ void  init()
         {
             cin >> elem;
             node <T> *temp1, *p;
-            p= new node <T>;
             temp->field = elem; // записываем данные в текущий узел
-            p->ptr= NULL; // новому элементу присваиваем значение указателя предыдущего
-            temp->ptr=p; // текущий указывает на только что созданный
+            if (i==N-2) lst->prev=temp;
+            if (i!=N-1){
+            p= new node <T>;
+            p->next= NULL; // новому элементу присваиваем значение указателя предыдущего
+            p->prev= temp;
+            temp->next=p; // текущий указывает на только что созданный
+           // lst->prev=temp;
             temp = p; // текущим становится только что созданный
+            }
         }
+        lst->field=temp->field;
+        lst->next=NULL;
+
 }
 
 void print()
 {
     cout << "Текущий список" << endl;
     node <T> *temp=fst;
-    while (temp->ptr!=NULL)
+    //while (temp->next!=NULL)
+    for (int i=0; i<N; i++)
     {
         cout << temp->field << endl;
-        temp=temp->ptr;
+        temp=temp->next;
     }
 }
 
@@ -211,11 +318,15 @@ int getIsEmpty()
 
 T Get (int index)
 {
+    if (index > N || index < 0) return 404;
+    else
+    {
     node <T> *temp=fst;
     int i;
     for (i=0; i<index; i++)
-        temp=temp->ptr;
+        temp=temp->next;
     return (temp->field);
+    }
 }
 
 T GetFirst ()
@@ -228,7 +339,7 @@ T GetLast ()
     node <T> *temp=fst;
     int i;
     for (i=0; i<N-1; i++)
-        temp=temp->ptr;
+        temp=temp->next;
     return (temp->field);
 }
 
@@ -236,7 +347,7 @@ void Prepend(T elem)
 {
     int i;
     node <T> *temp=new node <T>;
-    temp->ptr=fst;
+    temp->next=fst;
     temp->field=elem;
     fst=temp;
     N++;
@@ -244,17 +355,16 @@ void Prepend(T elem)
 
 void Append(T elem){
         struct node<T> *temp=fst;
-        struct node<T> *temp1;
         if(N==0)Prepend(elem); else{
-        while (temp->ptr!=NULL)
-        temp=temp->ptr;
-        temp1=(struct node<T> *)malloc(sizeof(struct node<T>));
-        temp->ptr=temp1;
+        for (int i=0; i<N-1; i++)
+        temp=temp->next;
+        node<T> *temp1=new node <T>;
+        temp->next=temp1;
         temp1->field=elem;
-        temp1->ptr=NULL;
+        temp1->next=NULL;
         N++;
         }
-};
+}
 
 
 void InsertAt(int index, T elem)
@@ -269,12 +379,12 @@ void InsertAt(int index, T elem)
     {
         for (i=0;i<index-1;i++)
         {
-            temp=temp->ptr;
+            temp=temp->next;
         }
-        temp1 = temp->ptr;
-        temp->ptr = temp2;
+        temp1 = temp->next;
+        temp->next = temp2;
         temp2->field = elem;
-        temp2->ptr= temp1;
+        temp2->next= temp1;
     N++;
     }
 }
@@ -283,17 +393,199 @@ void Remove(T elem)
 {
     node <T> *temp=fst;
     node <T> *temp1;
-    while (temp->ptr!=NULL){
-    if(temp->ptr->field==elem){
-        temp1=temp->ptr;
-        temp->ptr=temp->ptr->ptr;
+    while (temp->next!=NULL){
+    if(temp->next->field==elem){
+        temp1=temp->next;
+        temp->next=temp->next->next;
         delete temp1;
         N--;
     }
-    temp=temp->ptr;
+    temp=temp->next;
     }
 }
 
+void bubbleSort()
+{
+    //T temp = 0;
+    node <T> *temp = fst;
+    bool exit = false;
+    while (!exit)
+    {
+    exit = true;
+    for (int i = 0; i < (N - 1); i++)
+    {
+        if (temp->field > temp->next->field)
+        {
+            node <T> *temp1= new node <T>;
+            temp1->field = temp->field;
+            temp->field = temp->next->field;
+            temp->next->field = temp1->field;
+           // temp=temp->next;
+            exit=false;
+        }
+        temp=temp->next;
+    }
+    temp=fst;
+    }
+
+}
+
+struct node<T> *getTail(struct node<T> *cur)
+{
+    while (cur != NULL && cur->next != NULL)
+        cur = cur->next;
+    return cur;
+}
+
+void CopyList(node <T> *temp)
+{
+    node <T> *temp1=fst;
+    for (int i=0; i<N; i++)
+    {
+        temp->field=temp1->field;
+        node <T> *temp2 = new node <T>;
+        temp->next=temp2;
+        temp2->prev=temp;
+        temp=temp->next;
+        temp1=temp1->next;
+    }
+}
+
+struct node<T> *partition(struct node<T> *head, struct node<T> *end,
+                       struct node<T> **newHead, struct node<T> **newEnd)
+{
+    struct node<T> *pivot = end;
+    struct node<T> *prev = NULL, *cur = head, *tail = pivot;
+
+    // During partition, both the head and end of the list might change
+    // which is updated in the newHead and newEnd variables
+    while (cur != pivot)
+    {
+        if (cur->field < pivot->field)
+        {
+            // First node that has a value less than the pivot - becomes
+            // the new head
+            if ((*newHead) == NULL)
+                (*newHead) = cur;
+
+            prev = cur;
+            cur = cur->next;
+        }
+        else // If cur node is greater than pivot
+        {
+            // Move cur node to next of tail, and change tail
+            if (prev)
+                prev->next = cur->next;
+            struct node<T> *tmp = cur->next;
+            cur->next = NULL;
+            tail->next = cur;
+            tail = cur;
+            cur = tmp;
+        }
+    }
+
+    // If the pivot data is the smallest element in the current list,
+    // pivot becomes the head
+    if ((*newHead) == NULL)
+        (*newHead) = pivot;
+
+    // Update newEnd to the current last node
+    (*newEnd) = tail;
+
+    // Return the pivot node
+    return pivot;
+}
+
+
+//here the sorting happens exclusive of the end node
+struct node<T> *quickSortRecur(struct node<T> *head, struct node<T> *end)
+{
+    // base condition
+    if (!head || head == end)
+        return head;
+
+    struct node<T> *newHead = NULL, *newEnd = NULL;
+
+    // Partition the list, newHead and newEnd will be updated
+    // by the partition function
+    struct node<T> *pivot = partition(head, end, &newHead, &newEnd);
+
+    // If pivot is the smallest element - no need to recur for
+    // the left part.
+    if (newHead != pivot)
+    {
+        // Set the node before the pivot node as NULL
+        struct node<T> *tmp = newHead;
+        while (tmp->next != pivot)
+            tmp = tmp->next;
+        tmp->next = NULL;
+
+        // Recur for the list before pivot
+        newHead = quickSortRecur(newHead, tmp);
+
+        // Change next of last node of the left half to pivot
+        tmp = getTail(newHead);
+        tmp->next =  pivot;
+    }
+
+    // Recur for the list after the pivot element
+    pivot->next = quickSortRecur(pivot->next, newEnd);
+
+    return newHead;
+}
+
+// The main function for quick sort. This is a wrapper over recursive
+// function quickSortRecur()
+void QuickSort()
+{
+    struct node<T> **headRef=&fst;
+    (*headRef) = quickSortRecur(*headRef, getTail(*headRef));
+    return;
+}
+
+void InsertionSort()
+{
+    insertionSort(&fst);
+}
+
+void insertionSort(struct node<T> **head_ref)
+{
+    struct node <T> *sorted = NULL;
+    struct node <T> *current = *head_ref;
+    while (current != NULL)
+    {
+
+         struct node <T> *nexti = current->next;
+
+        sortedInsert(&sorted, current);
+
+        current = nexti;
+    }
+
+    *head_ref = sorted;
+}
+
+void sortedInsert(struct node<T>** head_ref, struct node<T>* new_node)
+{
+    struct node<T>* current;
+    /* Special case for the head end */
+    if (*head_ref == NULL || (*head_ref)->field >= new_node->field)
+    {
+        new_node->next = *head_ref;
+        *head_ref = new_node;
+    }
+    else
+    {
+        current = *head_ref;
+        while (current->next!=NULL &&
+               current->next->field < new_node->field)
+        {
+            current = current->next;
+        }
+        new_node->next = current->next;
+        current->next = new_node;
+    }
+}
 
  };
 void menu()
@@ -308,7 +600,10 @@ void menu()
     cout << "8- добавить элемент в нужную позицию" << endl;
     cout << "9- удалить элемент из последовательности" << endl;
     cout << "10- извлечь подпоследовательность" << endl;
-    cout << "11 - показать последовательность" << endl;
+    cout << "11- показать последовательность" << endl;
+    cout << "12- сортировка пузырьком" << endl;
+    cout << "13- быстрая сортировка" << endl;
+    cout << "14- сортировка Шелла" << endl;
 }
 
 template<typename T>
@@ -322,7 +617,7 @@ Test(Sequence <T> *a)
     if (a->GetFirst()==23) cout << "Test3:  OK"<<endl ; else cout << "Test3:Error"<<endl;
     if (a->GetLast()==23) cout << "Test4:  OK" <<endl; else cout << "Test4:Error"<<endl;
     if (a->Get(0)==23) cout << "Test5:  OK" <<endl; else cout << "Test5:Error"<<endl;
-    //cout << (a->Get(-1)) <<endl; cout << (a->Get(-1)) <<endl;
+    cout << (a->Get(-1)) << " Error" <<endl; cout << (a->Get(-1))<< " Error" <<endl;
     a->Append(43);
     if (a->getLength()==2) cout << "Test6:  OK" <<endl ; else cout << "Test6:Error"<<endl;
     if (a->GetFirst()==23) cout << "Test7:  OK"<<endl ; else cout << "Test7:Error"<<endl;
@@ -336,6 +631,37 @@ Test(Sequence <T> *a)
     if (a->Get(1)==23) cout << "Test14: OK" <<endl; else cout << "Test14:Error"<<endl;
 }
 
+template<typename T>
+TestBubbleSort(Sequence <T> *a)
+{
+    if ( a->Get(0)==2 && a->Get(1)==3 && a->Get(2)==4 && a->Get(3)==5 && a->Get(4)==6 )
+        cout << "BubbleSort: OK" << endl;
+    else cout << "BubbleSort: Error" << endl;
+}
+
+template<typename T>
+TestQuickSort(Sequence <T> *a)
+{
+    if ( a->Get(0)==2 && a->Get(1)==3 && a->Get(2)==4 && a->Get(3)==5 && a->Get(4)==6 )
+        cout << "QuickSort: OK" << endl;
+    else cout << "QuickSort: Error" << endl;
+}
+
+template<typename T>
+TestShellSort(Sequence <T> *a)
+{
+    if ( a->Get(0)==2 && a->Get(1)==3 && a->Get(2)==4 && a->Get(3)==5 && a->Get(4)==6 )
+        cout << "ShellSort: OK" << endl;
+    else cout << "ShellSort: Error" << endl;
+}
+
+template<typename T>
+TestInsertionSort(Sequence <T> *a)
+{
+    if ( a->Get(0)==2 && a->Get(1)==3 && a->Get(2)==4 && a->Get(3)==5 && a->Get(4)==6 )
+        cout << "InsertionSort: OK" << endl;
+    else cout << "InsertionSort: Error" << endl;
+}
 
 int main()
 {
@@ -345,10 +671,11 @@ int main()
     cin >> c;
     ArraySequence <int> A;
     ListSequence <int> B;
-    if (c==1)
+    switch(c)
     {
-        cout << "Введите количество элементов масисива, а затем введите элементы" << endl;
-       //  ArraySequence <int> A;
+    case 1:
+    {
+         cout << "Введите количество элементов масисива, а затем введите элементы" << endl;
          int n;
          cin >> n;
          A.setN(n);
@@ -360,34 +687,39 @@ int main()
         {
          menu();
          cin >> c;
-         if (c==1) {cout << A.getLength() <<" - количество элементов в массиве" << endl;}
-         if (c==2) {cout << A.getIsEmpty() << endl;}
-         if (c==3) {
+         switch(c)
+         {
+         case 1: {cout << A.getLength() <<" - количество элементов в массиве" << endl; break;}
+         case 2: {cout << A.getIsEmpty() << endl; break;}
+         case 3: {
              int index;
              cout << "Введите индекс" << endl;
              cin >> index;
-             if ((index> n) or (index < 0))
-                cout <<"Ошибка! Слишком большой индекс" << endl;
-             else
-             {
+            // if ((index> n) or (index < 0))
+             //   cout <<"Ошибка! Слишком большой индекс" << endl;
+            // else
+            // {
                 cout << "Элемент с индексом "<< index << "=" <<A.Get(index)  << endl;
-             }
+                break;
+             //}
          }
-         if (c==4) {cout << A.GetFirst() << " - первый элемент последовательности" << endl;}
-         if (c==5) {cout << A.GetLast() << " - последний элемент последовательности" << endl;}
-         if (c==6) {
+         case 4: {cout << A.GetFirst() << " - первый элемент последовательности" << endl; break;}
+         case 5: {cout << A.GetLast() << " - последний элемент последовательности" << endl; break;}
+         case 6: {
             int elem;
             cout << "Введите элемент" << endl;
             cin >> elem;
             A.Append(elem);
+            break;
         }
-         if (c==7) {
+         case 7: {
             int elem;
             cout << "Введите элемент" << endl;
             cin >> elem;
             A.Prepend(elem);
+            break;
          }
-         if (c==8)
+         case 8:
          {
              int index;
              cout << "Введите индекс";
@@ -401,30 +733,60 @@ int main()
                 cin >> elem;
                 A.InsertAt(index, elem);
              }
+             break;
          }
-         if (c==9) {
+         case 9: {
             int elem;
             cout << "Введите элемент" << endl;
             cin >> elem;
             A.Remove(elem);
+            break;
          }
-         if (c==10)
+         case 10:
          {
             int i, j;
             cout << "Введите начальный и конечный индексы" << endl;
             cin >> i >> j;
-            ArraySequence <int> *B;
-           // B->setN(j-i+1);
-            int *b;
-            b=new int [j-i+1];
-           // B->setarr(b);
-            B=A.GetSubsequence(i, j);//->print();
-            B->print();
+            //ArraySequence <int> *C;
+           // C->setN(j-i+1);
+           // int *b;
+           // b=new int [j-i+1];
+            //C->setarr(b);
+            A.GetSubsequence(i, j)->print();
+          //  C->print();
+            break;
          }
-         if (c==11) {A.print();}
+         case 11: {A.print(); break;}
+         case 12:
+         {
+            unsigned int start_time =  clock();
+            A.bubbleSort(a, n);
+            unsigned int end_time = clock(); // конечное время
+            unsigned int search_time = end_time - start_time; // искомое время
+            A.print();
+            cout << "Время работы: " << search_time/1000 << endl;
+            break;
+         }
+         case 13:
+         {
+             unsigned int start_time =  clock();
+             A.QuickSort();
+             unsigned int end_time = clock(); // конечное время
+             unsigned int search_time = end_time - start_time; // искомое время
+             A.print();
+             cout << "Время работы: " << search_time/1000 << endl;
+         }
+         case 14:
+            {
+                A.ShellSort();
+                A.print();
+            }
+         break;
+         }
         } while(c!=0);
+    break;
     }
-     else if (c==2)
+     case 2:
     {
         cout << "Введите количество элементов списка, а затем введите элементы" << endl;
         ListSequence <int> A;
@@ -436,69 +798,154 @@ int main()
         {
          menu();
          cin >> c;
-         if (c==1) {cout << A.getLength() <<" - количество элементов в списке" << endl;}
-         if (c==2) {cout << A.getIsEmpty() << endl;}
-         if (c==3) {
+         switch(c)
+         {
+         case 1: {cout << A.getLength() <<" - количество элементов в списке" << endl; break;}
+         case 2: {cout << A.getIsEmpty() << endl; break;}
+         case 3: {
              int index;
              cout << "Введите индекс" << endl;
              cin >> index;
-             cout << "Элемент с индексом "<< index << "=" <<A.Get(index)  << endl;
+             if ((index> n) or (index < 0))
+                cout <<"Ошибка! Слишком большой индекс" << endl;
+             else
+             {
+                cout << "Элемент с индексом "<< index << "=" <<A.Get(index)  << endl;
              }
-         if (c==4) {cout << A.GetFirst() << " - первый элемент последовательности" << endl;}
-         if (c==5) {cout << A.GetLast() << " - последний элемент последовательности" << endl;}
-         if (c==6) {
+             break;
+             }
+         case 4: {cout << A.GetFirst() << " - первый элемент последовательности" << endl; break;}
+         case 5: {cout << A.GetLast() << " - последний элемент последовательности" << endl; break;}
+         case 6: {
             int elem;
             cout << "Введите элемент "<< endl;
             cin >> elem;
             A.Append(elem);
+            break;
          }
-         if (c==7) {
+         case 7: {
             int elem;
             cout << "Введите элемент "<< endl;
             cin >> elem;
             A.Prepend(elem);
+            break;
          }
-         if (c==8)
+         case 8:
          {
              int index;
-             int elem;
-             cout << "На какую позицию будем засовывать элемент?" << endl;
+            cout << "На какую позицию будем засовывать элемент?" << endl;
              cin >> index;
+             if (index>n)
+                 cout <<"Ошибка! Слишком большой индекс";
+             else {
              cout << "Введите элемент";
+             int elem;
              cin >> elem;
              A.InsertAt(index, elem);
+             }
+             break;
          }
-         if (c==9) {
+         case 9: {
              int elem;
              cout << "Какие элементы будем удалять?" << endl;
              cin >> elem;
              A.Remove(elem);
+             break;
          }
-         if (c==10)
+         case 10:
          {
             int i, j;
             cout << "Введите начальный и конечный индексы" << endl;
             cin >> i >> j;
             A.GetSubsequence(i, j);
+            break;
          }
-         if (c==11) {A.print();}
+         case 11: {A.print(); break;}
+
+         case 12:
+        {
+            A.bubbleSort();
+            A.print();
+            break;
+        }
+         case 13:
+        {
+            A.QuickSort();
+            A.print();
+        }
+         case 14:
+         {
+             A.InsertionSort();
+             A.print();
+         }
+         }
          }while(c!=0);
+
+         break;
    }
-   else if (c==3)
-   {
-      ArraySequence <int> A;
-      int *a;
-      a=new int [0];
-      A.setarr(a);
-      ListSequence <int> B;
-      A.setN(0);
-   //   ListSequence <int> B;
-      cout <<"Для массива"<< endl;
-      Test(&A);
-      cout << endl;
-      cout << "Для списка" << endl;
-      Test(&B);
+   case 3:
+    {
+        ArraySequence <int> A;
+        int *a;
+        a=new int [0];
+        A.setarr(a);
+        ListSequence <int> B;
+        A.setN(0);
+        cout <<"Для массива"<< endl;
+        Test(&A);
+        cout << endl;
+        cout << "Для списка" << endl;
+        Test(&B);
+
+        ArraySequence <int> C;
+        int *c;
+        c=new int [5];
+        C.setN(5);
+        C.setarr(c);
+        c[0]=4; c[1]=3; c[2]=5; c[3]=2; c[4]=6;
+        C.bubbleSort(c, n);
+        cout <<"Для массива"<< endl;
+        TestBubbleSort(&C);
+
+        ArraySequence <int> F;
+        int *f;
+        f=new int [5];
+        F.setN(5);
+        F.setarr(f);
+        f[0]=4; f[1]=3; f[2]=5; f[3]=2; f[4]=6;
+        F.QuickSort();
+        TestQuickSort(&F);
+
+        ArraySequence <int> G;
+        int *g;
+        g=new int [5];
+        G.setN(5);
+        G.setarr(f);
+        g[0]=4; g[1]=3; g[2]=5; g[3]=2; g[4]=6;
+        F.ShellSort();
+        TestShellSort(&G);
+
+        ListSequence <int> D;
+        D.setN(0);
+        D.Prepend(6); D.Prepend(2); D.Prepend(5); D.Prepend(3); D.Prepend(4);
+        cout << "Для списка" << endl;
+        D.bubbleSort();
+        TestBubbleSort(&D);
+
+        ListSequence <int> E;
+        E.setN(0);
+        E.Prepend(6); E.Prepend(2); E.Prepend(5); E.Prepend(3); E.Prepend(4);
+        E.QuickSort();
+        TestQuickSort(&E);
+
+        ListSequence <int> H;
+        H.setN(0);
+        H.Prepend(6); H.Prepend(2); H.Prepend(5); H.Prepend(3); H.Prepend(4);
+        H.InsertionSort();
+        TestInsertionSort(&H);
+        break;
+    }
    }
+
    return 0;
 }
-
