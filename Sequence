@@ -12,10 +12,156 @@ struct node
   struct node *prev;
 };
 
+template <typename T> class HashTable {
+public:
+    int M;
+    void GetM(int N)
+    {
+        M=N;
+    }
+    T *h = new T [M];
+
+    int HandlingCollision(int i)
+    {
+            h=(T*)realloc(h,sizeof(T)*(M+1));
+            M++;
+            h[M-1]=NULL;
+            while(h[i]!= NULL)
+            {
+                i++;
+            }
+            return i;
+    }
+    void init(T *arr)
+    {
+        for (int i=0; i < M; i++)
+            h[i] = NULL;
+            int x=M;
+        for (int i=0; i < x; i++)
+        {
+            //h(k,i)= (h1(k) + i*h2(k)) mod m 540 541
+            //h1(k)=k mod m, h2(k)=1+(k mod m1),
+            int h1 = arr[i] % 5;
+            int h2 = 1 + (arr[i] % 3);
+            int k = (h1 + i*h2) % 5;
+            if (h[k]!= NULL)
+            {
+                k=HandlingCollision(k);
+                h[k]= arr[i];
+            }
+            else h[k]= arr[i];
+        }
+    }
+    void printHashTable()
+    {
+        for (int i=0; i < M; i++)
+        {
+            cout << "Элемент с индексом " << i << ": " << h[i] << endl;
+        }
+    }
+
+    void add(T elem)
+    {
+        h=(T*)realloc(h,sizeof(T)*(M+1));
+        int h1 = elem % 5;
+        int h2 = 1 + (elem % 3);
+        int k = (h1 + h2) % 5;
+        if (h[k]!= NULL)
+            {
+                k=HandlingCollision(k);
+                h[k]= elem;
+            }
+            else h[k]= elem;
+        }
+
+    };
+
+
+template <typename T> class Tree {
+public:
+    struct Leaf {
+        T element;
+        int index = 0;
+        Leaf *Left = NULL;
+        Leaf *Right = NULL;
+    };
+    int size;
+    Leaf *root;
+    Tree() : root(NULL), size(0){}
+    void add(T elem, int index) {
+        Leaf *leaf = new Leaf;
+        leaf->element = elem;
+        leaf->index = index;
+        size++;
+        Leaf *p = root;
+        if (p == NULL) {
+            this->root = leaf;
+            return;
+        }
+        else {
+            Leaf *n = root;
+            while (n){
+                p = n;
+                if (elem < p->element)
+                    n = p->Left;
+                else if (elem > p->element)
+                    n = p->Right;
+                else
+                    break;
+            }
+            if (elem < p->element)
+                p->Left = leaf;
+            else
+                p->Right = leaf;
+        }
+
+    }
+    int find(T elem) {
+
+        Leaf *p = this->root;
+
+        while (p){
+            if (p->element > elem) {
+                p = p->Left;
+            }
+            else if (p->element < elem) {
+                p = p->Right;
+            }
+            else {
+                return p->index;
+            }
+        }
+        cout << "Not found..." << endl;
+    }
+
+void inorder(Leaf* p, int deep)
+{
+	if (p){
+		for (int i = 0; i <= deep; i++)
+			cout << "--";
+		cout << p->element << endl;
+		inorder(p->Left, deep + 1);
+		inorder(p->Right, deep + 1);
+
+	}
+	else{
+		for (int i = 0; i <= deep; i++)
+			cout << "--";
+		cout << "NULL" << endl;
+	}
+}
+};
+
 template <typename T>
     class Sequence
 {
 public:
+    Tree<T> *tree;
+    HashTable<T> *hashTable;
+    Sequence(){
+        tree = new Tree<T>;
+        hashTable = new HashTable<T>;
+    };
     virtual int getLength() {} ;
     virtual int getIsEmpty() {};
     virtual void setN(int a) {};
@@ -29,6 +175,9 @@ public:
     virtual void InsertAt(int index, T elem) {}
     virtual void Remove (T elem) {}
     virtual Sequence <T> *GetSubsequence(int startIndex, int endIndex) {}
+    virtual T binarySearch(T elem) = 0;
+    virtual T binaryTreeSearch(T elem) = 0;
+    virtual void InitHashTable() {}
 
 };
 
@@ -244,6 +393,56 @@ void ShellSort()
     shellSort(N, arr);
 }
 
+T binarySearch(T elem)  {
+        int m;
+        int index1 = 0, index2 = N-1;
+        ShellSort();
+        while (true){
+            if (index1 > index2) {
+                cout << "Элемент не найден" << endl;
+                return -1;
+            }
+            m = index1 + (index2 - index1) / 2;
+            if (Get(m) < elem) index1 = m+1;
+            if (Get(m) > elem) index2 = m-1;
+            if (Get(m) == elem) {
+                break;
+            }
+        }
+        return m;
+    }
+
+T binaryTreeSearch(T elem)  {
+        //clock_t t;
+        //t = clock();
+        for (int i = 0; i < N; ++i) {
+            this->tree->add(Get(i), i); ///превращаем массив в дерево
+        }
+        //this->tree->inorder(this->tree->root, 0);
+        //cout << "Индекс элемента в дереве:" << this->tree->find(elem) << endl;
+        //t = clock() - t;
+        //printf ("Searching time is... (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
+        //cout << "Время поиска: " << t/CLOCKS_PER_SEC << endl;
+        return this->tree->find(elem);
+    }
+
+void InitHashTable()
+{
+    this->hashTable->GetM(getLength());
+    this->hashTable->init(arr);
+    //this->hashTable->printHashTable();
+}
+
+void PrintHashTable()
+{
+    this->hashTable->printHashTable();
+}
+
+void AddToHashTable(T elem)
+{
+    this->hashTable->add(elem);
+}
+
 };
 
  template <typename T> class ListSequence : public  Sequence<T>
@@ -291,7 +490,6 @@ void  init()
         }
         lst->field=temp->field;
         lst->next=NULL;
-
 }
 
 void print()
@@ -587,7 +785,49 @@ void sortedInsert(struct node<T>** head_ref, struct node<T>* new_node)
     }
 }
 
+T binarySearch(T elem) {
+        int m;
+        int index1 = 0, index2 = N-1;
+        InsertionSort();
+        while (true){
+            if (index1 > index2) {
+                cout << "Элемент не найден " << endl;
+                return -1;
+            }
+            m = index1 + (index2 - index1) / 2;
+            if (Get(m) < elem) index1 = m+1;
+            if (Get(m) > elem) index2 = m-1;
+            if (Get(m) == elem) {
+                break;
+            }
+        }
+        return m;
+}
+
+T binaryTreeSearch(T elem)  {
+        clock_t t;
+        t = clock();
+        for (int i = 0; i < N; ++i) {
+            this->tree->add(Get(i), i); ///превращаем массив в дерево
+        }
+        //this->tree->inorder(this->tree->root, 0);
+        //cout << "Индекс элемента в дереве:" << this->tree->find(elem) << endl;
+        //t = clock() - t;
+        //printf ("Searching time is... (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
+        //cout << "Время поиска: " << t/CLOCKS_PER_SEC << endl;
+        return this->tree->find(elem);
+    }
+
+
  };
+
+
+void menu2()
+{
+    cout << "1- показать хэш таблицу" << endl;
+    cout << "2- добавить элемент в хэш таблицу" << endl;
+}
+
 void menu()
 {
     cout << "Введите 1 для того, чтобы узнать сколько элементов в последоватеьности" << endl;
@@ -604,6 +844,9 @@ void menu()
     cout << "12- сортировка пузырьком" << endl;
     cout << "13- быстрая сортировка" << endl;
     cout << "14- сортировка Шелла" << endl;
+    cout << "15- бинарный поиск по отсортированной последовательности" << endl;
+    cout << "16- поиск по бинарному дереву поиска" << endl;
+    cout << "17- работа с хэш- таблицей" << endl;
 }
 
 template<typename T>
@@ -663,6 +906,24 @@ TestInsertionSort(Sequence <T> *a)
     else cout << "InsertionSort: Error" << endl;
 }
 
+template<typename T>
+TestbinaryTreeSearch(Sequence <T> *a)
+{
+    if (a->binaryTreeSearch(5)==0 && a->binaryTreeSearch(1)==1 && a->binaryTreeSearch(4)==2 && a->binaryTreeSearch(2)==3 && a->binaryTreeSearch(3)==4 && a->binaryTreeSearch(6)==5)
+        cout << "binaryTreeSearch: Ok" << endl;
+        else cout << "binaryTreeSearch: Error" << endl;
+}
+
+template<typename T>
+TestBinarySearch(Sequence <T> *a)
+{
+    if ( a->binarySearch(2)==0 && a->binarySearch(3)==1 && a->binarySearch(4)==2 && a->binarySearch(5)==3 && a->binarySearch(6)==4 )
+        cout << "BinarySearch: OK" << endl;
+    else cout << "BinarySearch: Error" << endl;
+}
+
+
+
 int main()
 {
     setlocale(0,"Russian");
@@ -670,7 +931,7 @@ int main()
     cout << "Введите 1 для работы с массивом, 2 для работы со списком, 3 для тестирования программы" << endl;
     cin >> c;
     ArraySequence <int> A;
-    ListSequence <int> B;
+   // ListSequence <int> B;
     switch(c)
     {
     case 1:
@@ -704,7 +965,7 @@ int main()
              //}
          }
          case 4: {cout << A.GetFirst() << " - первый элемент последовательности" << endl; break;}
-         case 5: {cout << A.GetLast() << " - последний элемент последовательности" << endl; break;}
+         case 5: {cout << A.GetLast() << "virtual int binarySearch(T elem) = 0; - последний элемент последовательности" << endl; break;}
          case 6: {
             int elem;
             cout << "Введите элемент" << endl;
@@ -775,11 +1036,61 @@ int main()
              unsigned int search_time = end_time - start_time; // искомое время
              A.print();
              cout << "Время работы: " << search_time/1000 << endl;
+             break;
          }
          case 14:
             {
                 A.ShellSort();
                 A.print();
+                break;
+            }
+         case 15:
+            {
+                int elem, k;
+                cout << "Какой элемент будем искать?" << endl;
+                cin >> elem;
+                clock_t t;
+                t = clock();
+                k = A.binarySearch(elem);
+                if (k!=-1 )
+                cout << "Индекс этого элемента в отсортированной полседоватлеьности: " << k << endl;
+                t = clock() - t;
+                cout << "Время поиска: " << t/CLOCKS_PER_SEC << endl;
+                break;
+            }
+         case 16:
+            {
+                int elem;
+                cout << "Какой элемент будем искать?" << endl;
+                cin >> elem;
+                cout << "Индекс элемента в бинарном дерееве: " << A.binaryTreeSearch(elem) << endl;
+                break;
+            }
+         case 17:
+            {
+                A.InitHashTable();
+                int z;
+                do
+                {
+                    menu2();
+                    cin >> z;
+                    switch (z)
+                    {
+                    case 1:
+                        {
+                            A.PrintHashTable();
+                            break;
+                        }
+                    case 2:
+                        {
+                            int elem;
+                            cout << "Введите элемент" << endl;
+                            cin >> elem;
+                            A.AddToHashTable(elem);
+                            break;
+                        }
+                    }
+                } while (z!=0);
             }
          break;
          }
@@ -872,12 +1183,35 @@ int main()
         {
             A.QuickSort();
             A.print();
+            break;
         }
          case 14:
          {
              A.InsertionSort();
              A.print();
+             break;
          }
+         case 15:
+        {
+            int elem, k;
+            cout << "Какой элемент будем искать?" << endl;
+            cin >> elem;
+            clock_t t;
+            t = clock();
+            k = A.binarySearch(elem);
+            if (k!=-1 )
+            cout << "Индекс этого элемента в отсортированной полседоватлеьности: " << k << endl;
+            t = clock() - t;
+            cout << "Время поиска: " << t/CLOCKS_PER_SEC << endl;
+            break;
+        }
+        case 16:
+            {
+                int elem;
+                cout << "Какой элемент будем искать?" << endl;
+                cin >> elem;
+                cout << "Индекс элемента в бинарном дерееве: " << A.binaryTreeSearch(elem) << endl;
+            }
          }
          }while(c!=0);
 
@@ -920,10 +1254,19 @@ int main()
         int *g;
         g=new int [5];
         G.setN(5);
-        G.setarr(f);
+        G.setarr(g);
         g[0]=4; g[1]=3; g[2]=5; g[3]=2; g[4]=6;
-        F.ShellSort();
+        G.ShellSort();
         TestShellSort(&G);
+        TestBinarySearch(&G);
+
+        ArraySequence <int> M;
+        int *m;
+        m=new int [6];
+        M.setN(6);
+        M.setarr(m);
+        m[0]=5; m[1]=1; m[2]=4; m[3]=2; m[4]=3; m[5]=6;
+        TestbinaryTreeSearch(&M);
 
         ListSequence <int> D;
         D.setN(0);
@@ -943,6 +1286,13 @@ int main()
         H.Prepend(6); H.Prepend(2); H.Prepend(5); H.Prepend(3); H.Prepend(4);
         H.InsertionSort();
         TestInsertionSort(&H);
+        TestBinarySearch(&H);
+
+        ListSequence <int> X;
+        X.setN(0);
+        X.Prepend(6); X.Prepend(3); X.Prepend(2); X.Prepend(4); X.Prepend(1);  X.Prepend(5);
+        TestbinaryTreeSearch(&X);
+
         break;
     }
    }
