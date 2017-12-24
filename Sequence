@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <cstring>
 using namespace std;
 
 template <typename T>
@@ -12,68 +13,71 @@ struct node
   struct node *prev;
 };
 
+struct student
+{
+    char name[20];
+    char lastname[20];
+    char group[8];
+    student *next= NULL;
+};
+
 template <typename T> class HashTable {
 public:
-    int M;
-    void GetM(int N)
-    {
-        M=N;
-    }
-    T *h = new T [M];
+    student *h[541]={NULL};
 
-    int HandlingCollision(int i)
+    void add(student element)
     {
-            h=(T*)realloc(h,sizeof(T)*(M+1));
-            M++;
-            h[M-1]=NULL;
-            while(h[i]!= NULL)
-            {
-                i++;
-            }
-            return i;
-    }
-    void init(T *arr)
-    {
-        for (int i=0; i < M; i++)
-            h[i] = NULL;
-            int x=M;
-        for (int i=0; i < x; i++)
+        int hashes[3], result=0;
+        hashes[0]=abs(hash(element.lastname));
+        hashes[1]=abs(hash(element.name));
+        hashes[2]=abs(hash(element.group));
+        for (int i=0; i<3; i++)
         {
-            //h(k,i)= (h1(k) + i*h2(k)) mod m 540 541
-            //h1(k)=k mod m, h2(k)=1+(k mod m1),
-            int h1 = arr[i] % 5;
-            int h2 = 1 + (arr[i] % 3);
-            int k = (h1 + i*h2) % 5;
-            if (h[k]!= NULL)
-            {
-                k=HandlingCollision(k);
-                h[k]= arr[i];
-            }
-            else h[k]= arr[i];
+            result+=hashes[i];
+        }
+        result= result % 541;
+        student *temp= h[result];
+        if (h[result]==NULL)
+        {
+            temp=new student;
+            strcpy(temp->lastname,element.lastname);
+            strcpy(temp->name,element.name);
+            strcpy(temp->group,element.group);
+            h[result]=temp;
+            temp->next=NULL;
+        }
+        else
+        {
+            while (temp->next!=NULL)
+                temp=temp->next;
+            temp->next= new student;
+            temp=temp->next;
+            strcpy(temp->lastname,element.lastname);
+            strcpy(temp->name,element.name);
+            strcpy(temp->group,element.group);
         }
     }
+
+    int hash(char s[20])
+    {
+        int a=0;
+		for(int i=0; i<strlen(s); i++)
+			a+=s[i];
+		return a % 541;
+	}
+
     void printHashTable()
     {
-        for (int i=0; i < M; i++)
-        {
-            cout << "Элемент с индексом " << i << ": " << h[i] << endl;
-        }
+        student *temp;
+		int i;
+		cout << "Фамилия Имя Группа\n";
+		for(i=0;i<541;++i){
+			temp=h[i];
+			while(temp!=NULL){
+				cout << temp->lastname << temp->name << temp->group << endl;
+				temp=temp->next;}
+			}
     }
-
-    void add(T elem)
-    {
-        h=(T*)realloc(h,sizeof(T)*(M+1));
-        int h1 = elem % 5;
-        int h2 = 1 + (elem % 3);
-        int k = (h1 + h2) % 5;
-        if (h[k]!= NULL)
-            {
-                k=HandlingCollision(k);
-                h[k]= elem;
-            }
-            else h[k]= elem;
-        }
-
     };
 
 
@@ -426,19 +430,19 @@ T binaryTreeSearch(T elem)  {
         return this->tree->find(elem);
     }
 
-void InitHashTable()
+/*void InitHashTable()
 {
     this->hashTable->GetM(getLength());
     this->hashTable->init(arr);
     //this->hashTable->printHashTable();
-}
+}*/
 
 void PrintHashTable()
 {
     this->hashTable->printHashTable();
 }
 
-void AddToHashTable(T elem)
+void AddToHashTable(student elem)
 {
     this->hashTable->add(elem);
 }
@@ -1068,7 +1072,7 @@ int main()
             }
          case 17:
             {
-                A.InitHashTable();
+               // A.InitHashTable();
                 int z;
                 do
                 {
@@ -1083,9 +1087,14 @@ int main()
                         }
                     case 2:
                         {
-                            int elem;
-                            cout << "Введите элемент" << endl;
-                            cin >> elem;
+                            char name[20];
+                            char lastname[20];
+                            char group[8];
+                            student elem;
+                            cout << "Введите фамилию, имя и группу" << endl;
+                            cin >> elem.lastname;
+                            cin >> elem.name;
+                            cin >> elem.group;
                             A.AddToHashTable(elem);
                             break;
                         }
