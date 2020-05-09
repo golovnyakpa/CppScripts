@@ -1,1 +1,2 @@
-# lab1
+# CPP programms
+Repo with few cpp programms
